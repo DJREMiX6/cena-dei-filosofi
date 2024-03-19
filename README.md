@@ -109,3 +109,20 @@ Evitare attese attive (cicli continui che impegnino intensivamente la CPU).
 Il progetto deve essere spedito via email al Docente all’indirizzo, oppure messo a disposizione su un qualsiasi cloud e reso scaricabile tramite link da inviare sempre al suddetto indirizzo.
 
 ###La consegna deve avvenire tassativamente almeno una settimana prima della data dell’esame orale. Il formato può essere tar, tgz o zip.
+
+## Argomenti da linea di comando
+Usage: Exec [OPTION...]
+
+  -c, --count=int            Sets the number of philosophers that must be
+                             greater than zero.
+      --detect-deadlock      If set, the application will detect the deadlock
+                             and print it out.
+      --detect-starvation    If set, the application will detect the starvation
+                             and print it out.
+      --resolve-deadlock     If set, the application will resolve the deadlock
+                             if it is detected.
+  -?, --help                 Give this help list
+      --usage                Give a short usage message
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
