@@ -7,7 +7,7 @@
 #include <string.h>
 
 static struct argp_option options[] = {
-    {"count", 'c', "int", 0, "Sets the number of philosophers that must be greater than zero."},
+    {"count", 'c', "int", 0, "Sets the number of philosophers that must be greater than one."},
     {"detect-starvation", 1, 0, OPTION_ARG_OPTIONAL, "If set, the application will detect the starvation and print it out."},
     {"detect-deadlock", 2, 0, OPTION_ARG_OPTIONAL, "If set, the application will detect the deadlock and print it out."},
     {"resolve-deadlock", 3, 0, OPTION_ARG_OPTIONAL, "If set, the application will resolve the deadlock if it is detected."},
@@ -20,7 +20,7 @@ static error_t parse_opt(int key, char* arg, struct argp_state *state) {
     switch(key) {
         case 'c':
             int count = atoi(arg);
-            if(count <= 0) { return ARGS_INT_ERR_COUNT; }
+            if(count <= 1) { return ARGS_INT_ERR_COUNT; }
 
             options->count = count;
             break;
@@ -53,7 +53,7 @@ void int_args(int argc, char *argv[], struct application_options* opt) {
             case ARGP_ERR_UNKNOWN:
                 break;
             case ARGS_INT_ERR_COUNT:
-                printf("%s: option requires an integer argument greater than zero -- 'c'.\n", argv[0]);
+                printf("%s: option requires an integer argument greater than one -- 'c'.\n", argv[0]);
                 printf("Try '--help' or '--usage' for more information.\n");
                 exit(222);
             default:
