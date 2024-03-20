@@ -11,6 +11,7 @@ static struct argp_option options[] = {
     {"detect-starvation", 1, 0, OPTION_ARG_OPTIONAL, "If set, the application will detect the starvation and print it out."},
     {"detect-deadlock", 2, 0, OPTION_ARG_OPTIONAL, "If set, the application will detect the deadlock and print it out."},
     {"resolve-deadlock", 3, 0, OPTION_ARG_OPTIONAL, "If set, the application will resolve the deadlock if it is detected."},
+    {"verbose", 4, 0, OPTION_ARG_OPTIONAL, "If set, the application will log more information about each step it takes."},
     {0}
 };
 
@@ -32,6 +33,9 @@ static error_t parse_opt(int key, char* arg, struct argp_state *state) {
             break;
         case 3:
             options->resolve_deadlock = true;
+            break;
+        case 4:
+            options->verbose = true;
             break;
         default:
             return ARGP_ERR_UNKNOWN;

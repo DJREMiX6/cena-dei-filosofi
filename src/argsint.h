@@ -10,6 +10,7 @@ struct application_options {
     bool detect_starvation;
     bool detect_deadlock;
     bool resolve_deadlock;
+    bool verbose;
 };
 
 /**
