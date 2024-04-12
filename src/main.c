@@ -64,7 +64,11 @@ int main(int argc, char *argv[])
         if(pid == 0) {
             // Child process
             if(i == app_opt.count - 1) {
-                execute_philosopher(i, &shared_semaphores[i], &shared_semaphores[0]);
+                if(app_opt.resolve_deadlock) {  // --resolve-deadlock option solution
+                    execute_philosopher(i, &shared_semaphores[0], &shared_semaphores[i]);
+                } else {
+                    execute_philosopher(i, &shared_semaphores[i], &shared_semaphores[0]);
+                }
             } else {
                 execute_philosopher(i, &shared_semaphores[i], &shared_semaphores[i + 1]);
             }
