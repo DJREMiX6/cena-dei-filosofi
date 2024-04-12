@@ -63,10 +63,10 @@ int main(int argc, char *argv[])
         }
         if(pid == 0) {
             // Child process
-            if(i == 0) {
-                execute_philosopher(i, &shared_semaphores[app_opt.count - 1], &shared_semaphores[0]);
-            }else {
-                execute_philosopher(i, &shared_semaphores[i - 1], &shared_semaphores[i]);
+            if(i == app_opt.count - 1) {
+                execute_philosopher(i, &shared_semaphores[i], &shared_semaphores[0]);
+            } else {
+                execute_philosopher(i, &shared_semaphores[i], &shared_semaphores[i + 1]);
             }
         } else {
             // Parent Process
