@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <string.h>
+#include <time.h>
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -86,13 +87,8 @@ int main(int argc, char *argv[])
 
 void execute_child(int id, sem_t* semaphore1, sem_t* semaphore2) {
     int semaphore_value;
-    
+    srand(time(NULL));
     while(true) {
-        sem_getvalue(semaphore1, &semaphore_value);
-        printf("[Philosopher %d] The semaphore1 value before locking is: %d\n", id, semaphore_value);
-
-        sem_getvalue(semaphore2, &semaphore_value);
-        printf("[Philosopher %d] The semaphore2 value before locking is: %d\n", id, semaphore_value);
         
         // Locks the semaphore if it is not locked by any one else
         printf("[Philosopher %d] Is waiting for the right fork.\n", id);
@@ -110,15 +106,10 @@ void execute_child(int id, sem_t* semaphore1, sem_t* semaphore2) {
         }
         printf("[Philosopher %d] Has taken the left fork.\n", id);
 
-        /* sem_getvalue(semaphore1, &semaphore_value);
-        printf("[Child %d] The semaphore1 value after locking is: %d\n", id, semaphore_value);
-
-        sem_getvalue(semaphore2, &semaphore_value);
-        printf("[Child %d] The semaphore2 value after locking is: %d\n", id, semaphore_value); */
-
-        // Execution of code
-        printf("[Philosopher %d] Eating..\n", id);
-        sleep(3);
+        // "Eating" for a random time between 1 and 5 seconds
+        int eating_time = rand() % 5 + 1;
+        printf("[Philosopher %d] Eating for %d seconds..\n", id, eating_time);
+        sleep(eating_time);
         printf("[Philosopher %d] Done eating.\n", id);
 
         // Releases the semaphore
@@ -136,12 +127,6 @@ void execute_child(int id, sem_t* semaphore1, sem_t* semaphore2) {
             exit(3);
         }
         printf("[Philosopher %d] Has put down the left fork.\n", id);
-
-        /* sem_getvalue(semaphore1, &semaphore_value);
-        printf("[Child %d] The semaphore1 value after releasing is: %d\n", id, semaphore_value);
-
-        sem_getvalue(semaphore2, &semaphore_value);
-        printf("[Child %d] The semaphore2 value after releasing is: %d\n", id, semaphore_value); */
     }
     
     exit(0);
