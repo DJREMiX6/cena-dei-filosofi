@@ -16,7 +16,7 @@
 
 #define SHARED_MEM_NAME "/filosofi_shared_memory"
 
-void execute_child(int id, sem_t* semaphore1, sem_t* semaphore2);
+void execute_philosopher(int id, sem_t* semaphore1, sem_t* semaphore2);
 
 void initial_setup();
 
@@ -64,9 +64,9 @@ int main(int argc, char *argv[])
         if(pid == 0) {
             // Child process
             if(i == 0) {
-                execute_child(i, &shared_semaphores[app_opt.count - 1], &shared_semaphores[0]);
+                execute_philosopher(i, &shared_semaphores[app_opt.count - 1], &shared_semaphores[0]);
             }else {
-                execute_child(i, &shared_semaphores[i - 1], &shared_semaphores[i]);
+                execute_philosopher(i, &shared_semaphores[i - 1], &shared_semaphores[i]);
             }
         } else {
             // Parent Process
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
 // Functions
 
-void execute_child(int id, sem_t* semaphore1, sem_t* semaphore2) {
+void execute_philosopher(int id, sem_t* semaphore1, sem_t* semaphore2) {
     int semaphore_value;
     srand(time(NULL));
     while(true) {
