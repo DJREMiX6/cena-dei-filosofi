@@ -1,0 +1,1 @@
+./out/Filosofi -c 5
