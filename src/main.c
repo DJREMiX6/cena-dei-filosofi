@@ -13,6 +13,7 @@
 #include <sys/mman.h>
 
 #include <argsint.h>
+#include <helperservice.h>
 
 #define SHARED_MEM_NAME "/filosofi_shared_memory"
 
@@ -63,6 +64,7 @@ int main(int argc, char *argv[])
         }
         if(pid == 0) {
             // Child process
+
             if(i == app_opt.count - 1) {
                 if(app_opt.resolve_deadlock) {  // --resolve-deadlock option solution
                     execute_philosopher(i, &shared_semaphores[0], &shared_semaphores[i]);
@@ -74,63 +76,82 @@ int main(int argc, char *argv[])
             }
         } else {
             // Parent Process
+
+            add_philosopher(i, PS_NONE);
             philosophers_pids[i] = pid;
         }
     }
     if(app_opt.verbose) { printf("Philosophers created.\n"); }
 
-    for(int i = 0; i < app_opt.count; i++) {
-        waitpid(philosophers_pids[i], NULL, 0);
-    }
-    if(app_opt.verbose) { printf("Philosophers processes ended.\n"); }
+    int pid = fork();
 
-    return 0;
+    if(pid == 0) {
+        // Child Proccess
+
+        execute_helper_service(app_opt.detect_deadlock, app_opt.detect_starvation);
+        return 0;
+    } else {
+        // Parent Process
+
+        for(int i = 0; i < app_opt.count; i++) {
+            waitpid(philosophers_pids[i], NULL, 0);
+        }
+        if(app_opt.verbose) { printf("Philosophers processes ended.\n"); }
+
+        return 0;
+    }    
 }
 
 // Functions
 
-void execute_philosopher(int id, sem_t* semaphore1, sem_t* semaphore2) {
+void execute_philosopher(int _id, sem_t* _semaphore1, sem_t* _semaphore2) {
+    int state = PS_NONE;
     int semaphore_value;
     srand(time(NULL));
+
+    if(sem_wait(get_synchronization_semaphore()) < 0) {
+        perror("sem_wait");
+        exit(2);
+    }
+
     while(true) {
-        
         // Locks the semaphore if it is not locked by any one else
-        printf("[Philosopher %d] Is waiting for the right fork.\n", id);
-        if(sem_wait(semaphore1) < 0) {
+        printf("[Philosopher %d] Is waiting for the right fork.\n", _id);
+        if(sem_wait(_semaphore1) < 0) {
             perror("sem_wait");
             exit(2);
         }
-        printf("[Philosopher %d] Has taken the right fork.\n", id);
+        printf("[Philosopher %d] Has taken the right fork.\n", _id);
 
         // Locks the semaphore if it is not locked by any one else
-        printf("[Philosopher %d] Is waiting for the left fork.\n", id);
-        if(sem_wait(semaphore2) < 0) {
+        printf("[Philosopher %d] Is waiting for the left fork.\n", _id);
+        if(sem_wait(_semaphore2) < 0) {
             perror("sem_wait");
             exit(2);
         }
-        printf("[Philosopher %d] Has taken the left fork.\n", id);
+        printf("[Philosopher %d] Has taken the left fork.\n", _id);
 
         // "Eating" for a random time between 1 and 5 seconds
         int eating_time = rand() % 5 + 1;
-        printf("[Philosopher %d] Eating for %d seconds..\n", id, eating_time);
+        printf("[Philosopher %d] Eating for %d seconds..\n", _id, eating_time);
         sleep(eating_time);
-        printf("[Philosopher %d] Done eating.\n", id);
+        printf("[Philosopher %d] Done eating.\n", _id);
 
         // Releases the semaphore
-        printf("[Philosopher %d] Is putting down the right fork .\n", id);
-        if(sem_post(semaphore1) < 0) {
+        printf("[Philosopher %d] Is putting down the right fork .\n", _id);
+        if(sem_post(_semaphore1) < 0) {
             perror("sem_post");
             exit(3);
         }
-        printf("[Philosopher %d] Has put down the right fork.\n", id);
+        printf("[Philosopher %d] Has put down the right fork.\n", _id);
 
         // Releases the semaphore
-        printf("[Philosopher %d] Is putting down the left fork .\n", id);
-        if(sem_post(semaphore2) < 0) {
+        printf("[Philosopher %d] Is putting down the left fork .\n", _id);
+        if(sem_post(_semaphore2) < 0) {
             perror("sem_post");
             exit(3);
         }
-        printf("[Philosopher %d] Has put down the left fork.\n", id);
+        printf("[Philosopher %d] Has put down the left fork.\n", _id);
     }
     
     exit(0);
@@ -145,6 +166,7 @@ void initial_setup() {
     signals_handlers_setup();
     shared_memory_setup();
     shared_semaphores_setup();
+    init_helper_service(app_opt.verbose);
 
     if(app_opt.verbose) { printf("Initial setup completed.\n"); }
 }
@@ -276,16 +298,6 @@ void map_shared_semaphores() {
     if(app_opt.verbose) { printf("Shared semaphores mapping started.\n"); }
 
     shared_semaphores = mmap(NULL, sizeof(sem_t) * app_opt.count, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
-
-    /* for(int i = 0; i < app_opt.count; i++) {
-        off_t offset = i * sizeof(sem_t);
-        shared_semaphores[i] = mmap(NULL, sizeof(sem_t), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, offset);
-        if(shared_semaphores[i] == MAP_FAILED) {
-            perror("mmap");
-            exit(8);
-        }
-        if(app_opt.verbose) { printf("Shared semaphore [%d] mapped.\n", i); }
-    } */
     
     if(app_opt.verbose) { printf("Shared semaphores mapping completed.\n"); }
 }
@@ -313,6 +325,7 @@ void sigint_handler(int signal) {
 
         destroy_shared_semaphores();
         destroy_shared_memory();
+        destroy_helper_service_resources();
     } else {
         // Child process
         

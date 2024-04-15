@@ -1,1 +1,1 @@
-./out/Filosofi -c 5
+./out/Filosofi -c 5 --verbose
